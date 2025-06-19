@@ -1,0 +1,289 @@
+---
+title: "RNA-Seq Project"
+author: "Ammar Mizwar"
+output:
+  pdf_document: default
+---
+```{r}
+if (!requireNamespace("BiocManager"))
+    install.packages("BiocManager")
+BiocManager::install(c("limma", "edgeR", "Glimma", "org.Dm.eg.db", "gplots", "RColorBrewer", "NMF", "BiasedUrn"))
+```
+```{r}
+library(edgeR)
+library(limma)
+library(Glimma)
+library(org.Dm.eg.db)
+library(gplots)
+library(RColorBrewer)
+library(BiocManager)
+library(biomaRt)
+```
+```{r}
+# Read the data into R
+seqdata <- read.delim("counts_Drosophila.txt", stringsAsFactors = FALSE)
+# Read the sample information into R
+sampleinfo <- read.delim("SampleInfo_Drosophila.txt", stringsAsFactors = TRUE)
+```
+```{r}
+head(seqdata)
+sampleinfo
+```
+```{r}
+y <- DGEList(seqdata)
+# have a look at y
+y
+```
+```{r}
+y$samples
+```
+```{r}
+group <- sampleinfo$Group
+# Take a look
+group
+```
+```{r}
+# Convert to factor
+group <- factor(group)
+# Take another look.
+group
+```
+```{r}
+y$samples$group <- group
+y$samples
+```
+```{r}
+columns(org.Dm.eg.db)
+ann <- select(org.Dm.eg.db, keys = rownames(y$counts), 
+              columns = c("ENTREZID", "SYMBOL", "GENENAME"),
+              keytype = "FLYBASE"
+)
+
+# Have a look at the annotation
+head(ann)
+```
+```{r}
+table(ann$FLYBASE==rownames(y$counts))
+```
+```{r}
+y$genes <- ann
+```
+```{r}
+# Obtain CPMs
+myCPM <- cpm(seqdata)
+# Have a look at the output
+head(myCPM)
+```
+```{r}
+# Which values in myCPM are greater than 0.5?
+thresh <- myCPM > 0.5
+# This produces a logical matrix with TRUEs and FALSEs
+head(thresh)
+```
+```{r}
+# Summary of how many TRUEs there are in each row
+table(rowSums(thresh))
+```
+```{r}
+keep <- rowSums(thresh) >= 2
+summary(keep)
+```
+```{r}
+# Let's have a look and see whether our threshold of 0.5 does indeed correspond to a count of about 10-15
+# We will look at the first sample
+plot(myCPM[,1],seqdata[,1])
+```
+```{r}
+# Let us limit the x and y-axis so we can actually look to see what is happening at the smaller counts
+plot(myCPM[,1],seqdata[,1],ylim=c(0,20),xlim=c(0,10))
+# Add a vertical line at 0.5 CPM
+abline(v=0.5, h=15, col = "blue")
+```
+```{r}
+y <- y[keep, keep.lib.sizes=FALSE]
+```
+```{r}
+# we can also adjust the labelling if we want
+barplot(y$samples$lib.size/1e06, names=colnames(y), las=2, ann=FALSE, cex.names=0.75)
+mtext(side = 1, text = "", line = 4)
+mtext(side = 2, text = "Library size (millions)", line = 3)
+title("Barplot of library sizes")
+```
+```{r}
+# Get log2 counts per million
+logcounts <- cpm(y,log=TRUE)
+# Check distributions of samples using boxplots
+boxplot(logcounts, xlab="", ylab="Log2 counts per million",las=2)
+# Let's add a blue horizontal line that corresponds to the median logCPM
+abline(h=median(logcounts),col="blue")
+title("Boxplots of logCPMs (unnormalised)")
+```
+```{r}
+plotMDS(y)
+```
+```{r}
+# We specify the option to let us plot two plots side-by-sde
+par(mfrow=c(1,2))
+# Let's set up colour schemes for CellType
+# How many cell types and in what order are they stored?
+levels(sampleinfo$Group)
+```
+```{r}
+col.cell <- c("purple","orange")[sampleinfo$Group]
+data.frame(sampleinfo$Group,col.cell)
+```
+```{r}
+# Make sure your groupings and colors/shapes are well-defined
+col.cell <- as.numeric(factor(sampleinfo$Group))      # Colors for cell types
+pch.status <- as.numeric(factor(sampleinfo$Library))  # Shapes for library status
+
+# Plot MDS with both color and shape info
+plotMDS(y, col = col.cell, pch = pch.status, main = "MDS Plot: Group & Library Status")
+
+# Add color legend (cell types)
+legend("topleft",
+       legend = levels(sampleinfo$Group),
+       col = 1:length(levels(sampleinfo$Group)),
+       pch = 16,
+       title = "Cell Type",
+       cex = 0.8)
+
+# Add shape legend (library status)
+legend("bottomleft",
+       legend = levels(sampleinfo$Library),
+       pch = 1:length(levels(sampleinfo$Library)),
+       title = "Library Prep",
+       cex = 0.8)
+
+```
+```{r}
+library(RColorBrewer)
+library(ggplot2)
+var_genes <- apply(logcounts, 1, var)
+head(var_genes)
+select_var <- names(sort(var_genes, decreasing=TRUE))[1:500]
+head(select_var)
+highly_variable_lcpm <- logcounts[select_var,]
+dim(highly_variable_lcpm)
+head(highly_variable_lcpm)
+## Get some nicer colours
+mypalette <- brewer.pal(11,"RdYlBu")
+morecols <- colorRampPalette(mypalette)
+# Set up colour vector for celltype variable
+col.cell <- c("purple","orange")[sampleinfo$Group]
+
+# Plot the heatmap
+heatmap.2(highly_variable_lcpm,col=rev(morecols(50)),trace="none", main="Top 500 most variable genes across samples",ColSideColors=col.cell,scale="row")
+```
+```{r}
+y <- calcNormFactors(y)
+y$samples
+par(mfrow=c(1,2))
+plotMD(logcounts,column = 2)
+abline(h=0,col="grey")
+plotMD(logcounts,column = 6)
+abline(h=0,col="grey")
+
+# using y
+par(mfrow=c(1,2))
+plotMD(y,column = 2)
+abline(h=0,col="grey")
+plotMD(y,column = 6)
+abline(h=0,col="grey")
+```
+```{r}
+design <- model.matrix(~ 0 + group)
+colnames(design) <- levels(group)
+design
+
+par(mfrow=c(1,1))
+v <- voom(y,design,plot = TRUE)
+```
+```{r}
+par(mfrow=c(1,2))
+boxplot(logcounts, xlab="", ylab="Log2 counts per million",las=2,main="Unnormalised logCPM")
+## Let's add a blue horizontal line that corresponds to the median logCPM
+abline(h=median(logcounts),col="blue")
+boxplot(v$E, xlab="", ylab="Log2 counts per million",las=2,main="Voom transformed logCPM")
+## Let's add a blue horizontal line that corresponds to the median logCPM
+abline(h=median(v$E),col="blue")
+```
+```{r}
+fit <- lmFit(v)
+names(fit)
+cont.matrix <- makeContrasts(TreatedVsUntreated = Treated - Untreated,levels=design)
+cont.matrix
+```
+```{r}
+fit.cont <- contrasts.fit(fit, cont.matrix)
+fit.cont <- eBayes(fit.cont)
+dim(fit.cont)
+
+summa.fit <- decideTests(fit.cont)
+summary(summa.fit)
+```
+```{r}
+
+par(mfrow=c(1,2))
+plotMD(fit.cont,coef=1,status=summa.fit[,"TreatedVsUntreated"], values = c(-1, 1), hl.col=c("blue","red"))
+
+volcanoplot(fit.cont,coef=1,highlight=100,names=fit.cont$genes$SYMBOL, main="TreatedVsUntreated")
+
+which(rownames(v$E) == "FBgn0003360")
+
+par(mfrow=c(1,3))
+
+stripchart(v$E[2935,]~group)
+
+stripchart(v$E[2935,]~group,vertical=TRUE,las=2,cex.axis=0.8,pch=16,col=1:6,method="jitter")
+nice.col <- brewer.pal(6,name="Dark2")
+stripchart(v$E[2935,]~group,vertical=TRUE,las=2,cex.axis=0.8,pch=16,cex=1.3,col=nice.col,method="jitter",ylab="Normalised log2 expression",main="sesB")
+```
+```{r}
+group2 <- group
+levels(group2) <- c("Treated", "Untreated")
+glXYPlot(x=fit.cont$coefficients[,1], y=fit.cont$lods[,1],
+         xlab="logFC", ylab="B", main="TreatedVsUntreated",
+         counts=v$E, groups=group2, status=summa.fit[,1],
+         anno=fit.cont$genes, side.main="ENTREZID", folder="volcano")
+```
+```{r}
+fit.treat <- treat(fit.cont,lfc=1)
+res.treat <- decideTests(fit.treat)
+summary(res.treat)
+topTable(fit.treat,coef=1,sort.by="p")
+par(mfrow=c(1,2))
+plotMD(fit.treat,coef=1,status=res.treat[,"TreatedVsUntreated"], values=c(-1,1), hl.col=c("blue","red"))
+abline(h=0,col="grey")
+```
+```{r}
+try({# Connect to Ensembl Drosophila
+mart <- useMart("ensembl", dataset = "dmelanogaster_gene_ensembl")
+
+# Get gene lengths by FLYBASE ID
+gene_info <- getBM(attributes = c("flybase_gene_id", 
+                                  "entrezgene_id", 
+                                  "external_gene_name", 
+                                  "start_position", 
+                                  "end_position"),
+                   filters = "flybase_gene_id",
+                   values = rownames(y$counts),
+                   mart = mart)
+
+# Calculate length
+gene_info$length <- gene_info$end_position - gene_info$start_position + 1
+
+# Match back to your DGEList
+gene_length <- gene_info$length[match(rownames(y$counts), gene_info$flybase_gene_id)]
+names(gene_length) <- rownames(y$counts)
+
+go_length <- goana(fit.cont,coef="TreatedVsUntreated",gene.length = gene_length,species = "Dm")
+topGO(go_length, n=10)
+})
+# NOTE: goana() failed due to lack of annotated gene IDs in the universe.
+# This is likely because some gene IDs did not map to Entrez IDs.
+```
+```{r}
+sessionInfo()
+```
+
