@@ -47,3 +47,91 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+#######################################
+# Python-related ignores
+#######################################
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.ipynb_checkpoints/
+
+# Virtual environments
+.env
+.venv/
+env/
+venv/
+
+# Pip / Poetry / Conda stuff
+Pipfile.lock
+poetry.lock
+*.conda
+*.egg-info/
+
+# Logs
+*.log
+
+# ML / model files
+*.h5
+*.hdf5
+*.joblib
+*.pkl
+*.model
+*.weights
+
+#######################################
+# Bioinformatics data files
+#######################################
+
+*.csv
+*.tsv
+*.fasta
+*.fastq
+*.bam
+*.sam
+*.vcf
+*.gz
+*.zip
+*.tar
+*.tgz
+
+#######################################
+# IDEs / OS
+#######################################
+
+# VSCode
+.vscode/
+
+# JetBrains IDEs
+.idea/
+
+# Mac
+.DS_Store
+
+# ─────────────────────────────
+# 🧪 BIOINFORMATICS DATA FILES
+# ─────────────────────────────
+*.csv
+*.tsv
+*.fasta
+*.fastq
+*.fa
+*.fq
+*.bam
+*.sam
+*.vcf
+*.gff
+*.gff3
+*.bed
+*.gtf
+*.h5
+*.hdf5
+*.npz
+*.npy
+*.gz
+*.zip
+*.tar
+*.tgz
+
