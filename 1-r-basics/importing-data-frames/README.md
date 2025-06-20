@@ -2,6 +2,7 @@
 
 This project explores a dataset on maternal and paternal characteristics related to birthweight outcomes. It uses **basic R programming** techniques — ideal for early-stage bioinformatics coursework like `SIO3016: Biological Data Analytics`.
 
+
 ---
 
 ## 📦 Dataset
@@ -15,6 +16,7 @@ This project explores a dataset on maternal and paternal characteristics related
 - Geriatric pregnancy indicator  
 - Birth date (MM/DD/YYYY)
 
+
 ---
 
 ## 🔍 Objectives
@@ -25,6 +27,7 @@ This project explores a dataset on maternal and paternal characteristics related
 - Convert and manipulate date formats
 - Compare mean differences between groups
 - Perform a basic chi-squared test
+
 
 ---
 
@@ -39,6 +42,7 @@ This project explores a dataset on maternal and paternal characteristics related
 | 🎲 Chi-squared test | Association between geriatric pregnancy and low birthweight |
 | 📆 Date parsing | Split `birth.date` into `month`, `day`, `year` |
 
+
 ---
 
 ## 📚 Requirements
@@ -49,9 +53,12 @@ You’ll need:
 - `ggplot2` (optional)
 - Base R is enough for the current analysis
 
+
+---
 ## ❓ Your Tasks / Research Questions
 
 Below are a series of questions you'll answer using **basic R programming** skills:
+
 
 ---
 
@@ -60,11 +67,13 @@ Below are a series of questions you'll answer using **basic R programming** skil
 - Use `max()` and `min()` to find the difference.
 - Handle missing values properly.
 
+
 ---
 
 ### 2. 🧮 What is the mean maternal age?
 
 - Use `mean()` with proper `na.rm = TRUE` handling.
+
 
 ---
 
@@ -72,6 +81,7 @@ Below are a series of questions you'll answer using **basic R programming** skil
 
 - Use `which.max()` on `maternal.cigarettes` to find the row.
 - Extract the corresponding `maternal.age`.
+
 
 ---
 
@@ -81,6 +91,7 @@ Below are a series of questions you'll answer using **basic R programming** skil
 - Calculate the mean `maternal.prepregnant.weight` for each group.
 - Compare and interpret which group had the higher average.
 
+
 ---
 
 ### 5. 🎲 Is there a significant association between **geriatric pregnancy** and **low birthweight**?
@@ -89,6 +100,7 @@ Below are a series of questions you'll answer using **basic R programming** skil
   - `geriatric.pregnancy`
   - `low.birthweight`
 
+
 ---
 
 ### 6. 📆 Can you extract **day, month, and year** from the `birth.date` column?
@@ -96,12 +108,14 @@ Below are a series of questions you'll answer using **basic R programming** skil
 - Use `strsplit()` and a custom function to split the MM/DD/YYYY format.
 - Append new columns: `month`, `day`, and `year`.
 
+
 ---
 
 ## 📚 Bonus (Optional)
 
 - What is the **standard deviation** of paternal age?
 - Can you convert the `"smoker"` column into a logical `TRUE/FALSE` format?
+
 
 ---
 
