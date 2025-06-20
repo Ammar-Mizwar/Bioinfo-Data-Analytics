@@ -1,0 +1,110 @@
+---
+title: "importing-data-frames"
+output:
+  html_document:
+    df_print: paged
+---
+```{r}
+# Load dataset from CSV and preview first few rows
+birthweight <- read.csv("birthweight.csv", stringsAsFactors = FALSE)
+head(birthweight)
+```
+
+```{r}
+# Calculate range of paternal ages
+range_paternal <- max(birthweight$paternal.age, na.rm = TRUE) - min(birthweight$paternal.age, na.rm = TRUE)
+cat("Range of paternal ages:", range_paternal, "\n")
+```
+
+```{r}
+# Convert smoker column from "yes"/"no" strings to logical TRUE/FALSE
+# Step 1: Inspect conversion (not strictly necessary but left for clarity)
+as.logical(birthweight$low.birthweight)
+as.logical(birthweight$smoker)
+
+# Step 2: Check string values
+birthweight$smoker == "yes"
+
+# Step 3: Convert to TRUE/FALSE
+birthweight$smoker <- (birthweight$smoker == "yes")
+```
+
+```{r}
+# Run a chi-squared test between geriatric pregnancy status and low birthweight
+?chisq.test
+chisq.test(birthweight$geriatric.pregnancy, birthweight$low.birthweight)
+
+# Compare mean birthweight between geriatric and non-geriatric pregnancies
+mean(birthweight$birthweight[birthweight$geriatric.pregnancy])
+
+# the ! character is used for negation
+mean(birthweight$birthweight[!birthweight$geriatric.pregnancy])
+
+```
+
+```{r}
+# Calculate mean and standard deviation of paternal age
+mean(birthweight$paternal.age, na.rm = TRUE)
+sd(birthweight$paternal.age, na.rm = TRUE)
+```
+
+```{r}
+# Split birth.date column into separate month/day/year columns using strsplit
+?strsplit
+strsplit(birthweight$birth.date, split = "/")
+```
+```{r}
+# custom function takes a vector of dates and returns a data frame with columns day, month, and year
+split_MMDDYYYY <- function(date_vector){
+  date_list = lapply(seq(1:3), function(i){
+    as.integer(sapply(strsplit(date_vector, split = "/"), '[[', i))
+  })
+  names(date_list) = c("month", "day", "year")
+  as.data.frame(do.call("cbind", date_list))
+}
+
+# Apply date-splitting function and merge results with main data frame
+split_MMDDYYYY(birthweight$birth.date)
+birthweight <- cbind(birthweight, split_MMDDYYYY(birthweight$birth.date))
+```
+
+```{r}
+# Calculate mean maternal age
+mean_maternal_age <- mean(birthweight$maternal.age, na.rm = TRUE)
+cat("Mean maternal age:", mean_maternal_age, "\n")
+```
+
+```{r}
+# Find the index of the mother who smoked the most
+heaviest_smoker_index <- which.max(birthweight$maternal.cigarettes)
+
+# Retrieve her age
+age_heaviest_smoker <- birthweight$maternal.age[heaviest_smoker_index]
+cat("Age of mother who smoked the most:", age_heaviest_smoker, "\n")
+```
+
+```{r}
+# Compare pre-pregnancy weight between mothers of low and normal birthweight babies
+
+# Calculate group-wise means
+mean_lbw <- mean(birthweight$maternal.prepregnant.weight[birthweight$low.birthweight == 1], na.rm = TRUE)
+mean_non_lbw <- mean(birthweight$maternal.prepregnant.weight[birthweight$low.birthweight == 0], na.rm = TRUE)
+
+# Output group means
+cat("Mean pre-pregnant weight for mothers of LOW birthweight babies: ", mean_lbw, "\n",
+    "Mean pre-pregnant weight for mothers of NORMAL birthweight babies: ", mean_non_lbw, "\n")
+
+# Interpret result
+if (!is.na(mean_lbw) && !is.na(mean_non_lbw)) {
+  if (mean_lbw > mean_non_lbw) {
+    cat("➡️ Pre-pregnant weight is HIGHER among low birthweight group.\n")
+  } else if (mean_lbw < mean_non_lbw) {
+    cat("Pre-pregnant weight is LOWER among low birthweight group.\n")
+  } else {
+    cat("The mean pre-pregnant weight is the SAME in both groups.\n")
+  }
+} else {
+  cat("Cannot compare means — NA values still exist.\n")
+}
+```
+
