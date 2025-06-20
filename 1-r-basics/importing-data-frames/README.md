@@ -1,4 +1,4 @@
-# 🍼 Birthweight Analysis (SIO3016 Project)
+# 🍼 Birthweight Analysis
 
 This project explores the relationship between maternal and paternal characteristics and infant birth weight using basic R functions.
 
