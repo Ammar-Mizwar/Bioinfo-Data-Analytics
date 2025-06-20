@@ -1,4 +1,4 @@
-# 🍼 Birthweight Analysis
+# Importing, Exporting & Data Frame
 
 This project explores the relationship between maternal and paternal characteristics and infant birth weight using basic R functions.
 
