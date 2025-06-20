@@ -4,7 +4,7 @@ This project explores the relationship between maternal and paternal characteris
 
 ## 📂 File Structure
 
-- `data/`: Contains the dataset (`birthweigth.csv`)
+- `data/`: Contains the dataset (`birthweight.csv`)
 - `scripts/`: R script with step-by-step analysis
 - `reports/`: RMarkdown file with results & visualizations
 
